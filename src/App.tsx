@@ -134,14 +134,9 @@ function App() {
             <div className="space-y-6">
               <div className="space-y-4">
                 <p className="max-w-2xl font-heading text-4xl font-semibold leading-none text-white sm:text-5xl lg:text-6xl">
-                  BTC / ETH 每小时价格与换手率追踪台
+                  Crypto Volume Tracker
                 </p>
-                <p className="max-w-2xl text-sm leading-7 text-sand/72 sm:text-base">
-                  当前视图聚焦 {activeAsset.name}。换手率 = 该时点 24 小时成交量 / 该时点市值。
-                  数据唯一来源是 CoinGecko，后端按小时级历史快照入库，并在后台每 1 小时自动补最近数据。
-                </p>
-              </div>
-              <div className="flex flex-wrap gap-3">
+                <div className="flex flex-wrap gap-3">
                 {ASSET_OPTIONS.map((asset) => (
                   <button
                     key={asset.id}
@@ -155,6 +150,11 @@ function App() {
                     {asset.symbol} · {asset.name}
                   </button>
                 ))}
+              </div>
+                <p className="max-w-2xl text-sm leading-7 text-sand/72 sm:text-base">
+                  当前视图聚焦 {activeAsset.name}。换手率 = 该时点 24 小时成交量 / 该时点市值。
+                  数据唯一来源是 CoinGecko，后端按小时级历史快照入库，并在后台每 1 小时自动补最近数据。
+                </p>
               </div>
               <div className="grid gap-3 sm:grid-cols-3">
                 <MetricCard
