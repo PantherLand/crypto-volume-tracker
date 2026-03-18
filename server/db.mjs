@@ -1,7 +1,8 @@
 import process from 'node:process'
 import { PrismaClient } from '@prisma/client'
+import { loadLocalEnv } from './env.mjs'
 
-process.loadEnvFile?.()
+loadLocalEnv()
 
 const globalForPrisma = globalThis
 

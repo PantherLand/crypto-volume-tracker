@@ -3,6 +3,7 @@ import path from 'node:path'
 import process from 'node:process'
 import express from 'express'
 import cors from 'cors'
+import { loadLocalEnv } from './env.mjs'
 import {
   getDashboardSummary,
   getHourlySeries,
@@ -11,7 +12,7 @@ import {
   startBackgroundSyncJob,
 } from './coingecko.mjs'
 
-process.loadEnvFile?.()
+loadLocalEnv()
 
 const app = express()
 const port = Number(process.env.PORT ?? 3001)

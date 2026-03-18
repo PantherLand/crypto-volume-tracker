@@ -1,8 +1,9 @@
 import process from 'node:process'
 import { prisma } from '../server/db.mjs'
 import { getSyncStatus, startSync } from '../server/coingecko.mjs'
+import { loadLocalEnv } from '../server/env.mjs'
 
-process.loadEnvFile?.()
+loadLocalEnv()
 
 const mode = process.argv[2] === 'full' ? 'full' : 'recent'
 

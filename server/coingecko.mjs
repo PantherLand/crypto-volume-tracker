@@ -2,8 +2,9 @@ import { execFile } from 'node:child_process'
 import process from 'node:process'
 import { promisify } from 'node:util'
 import { prisma } from './db.mjs'
+import { loadLocalEnv } from './env.mjs'
 
-process.loadEnvFile?.()
+loadLocalEnv()
 
 const COINGECKO_API_BASE = 'https://api.coingecko.com/api/v3'
 const CHUNK_SPAN_MS = 90 * 24 * 60 * 60 * 1000 - 60 * 60 * 1000
