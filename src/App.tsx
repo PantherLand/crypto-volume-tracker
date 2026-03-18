@@ -211,22 +211,22 @@ function App() {
         />
       ) : null}
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 py-6 sm:px-6 lg:px-8">
-        <div className="flex justify-end">
+        <div className="pointer-events-none fixed right-4 top-4 z-20 sm:right-6 sm:top-6">
           <button
             aria-label={isDark ? '切换到日间模式' : '切换到夜间模式'}
-            className={`inline-flex items-center gap-2 rounded-full border px-2 py-2 shadow-lg transition ${themeToggleClass}`}
+            className={`pointer-events-auto inline-flex items-center gap-1 rounded-full border px-1.5 py-1.5 shadow-lg transition ${themeToggleClass}`}
             onClick={() => setTheme((current) => (current === 'dark' ? 'light' : 'dark'))}
             type="button"
           >
             <span
-              className={`flex h-10 w-10 items-center justify-center rounded-full transition ${
+              className={`flex h-8 w-8 items-center justify-center rounded-full transition ${
                 !isDark ? themeIconActiveClass : themeIconClass
               }`}
             >
               <SunIcon />
             </span>
             <span
-              className={`flex h-10 w-10 items-center justify-center rounded-full transition ${
+              className={`flex h-8 w-8 items-center justify-center rounded-full transition ${
                 isDark ? themeIconActiveClass : themeIconClass
               }`}
             >
@@ -603,7 +603,7 @@ function App() {
 
 function SunIcon() {
   return (
-    <svg aria-hidden="true" fill="none" height="18" viewBox="0 0 24 24" width="18">
+    <svg aria-hidden="true" fill="none" height="16" viewBox="0 0 24 24" width="16">
       <circle cx="12" cy="12" r="4.5" fill="currentColor" />
       <path
         d="M12 2.75V5.25M12 18.75V21.25M21.25 12H18.75M5.25 12H2.75M18.54 5.46L16.77 7.23M7.23 16.77L5.46 18.54M18.54 18.54L16.77 16.77M7.23 7.23L5.46 5.46"
@@ -617,7 +617,7 @@ function SunIcon() {
 
 function MoonIcon() {
   return (
-    <svg aria-hidden="true" fill="none" height="18" viewBox="0 0 24 24" width="18">
+    <svg aria-hidden="true" fill="none" height="16" viewBox="0 0 24 24" width="16">
       <path
         d="M14.5 3.25C10 4.05 6.75 7.96 6.75 12.5C6.75 17.63 10.87 21.75 16 21.75C18.12 21.75 20.08 21.05 21.64 19.87C17.21 19.59 13.75 15.95 13.75 11.43C13.75 8.45 15.25 5.79 17.56 4.19C16.61 3.54 15.6 3.23 14.5 3.25Z"
         fill="currentColor"
