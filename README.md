@@ -82,6 +82,12 @@ Sync the recent range:
 npm run sync:recent
 ```
 
+Backfill the most recent 365 days:
+
+```bash
+npm run sync:365d
+```
+
 Trigger a full backfill:
 
 ```bash
@@ -119,6 +125,8 @@ This project is currently using a CoinGecko demo key. Under CoinGecko's current 
 - Full hourly history for BTC since `2010` and ETH since `2015` is not available with a demo key
 
 If you need full historical coverage, replace the demo key with a higher-tier paid CoinGecko key.
+
+As of `2026-03-18`, `npm run sync:365d` is the practical maximum historical backfill available with the current demo key. In practice, that means roughly `2025-03-18` onward.
 
 ## Verified Commands
 

@@ -269,6 +269,10 @@ function getRecentSyncStart(latestTimestamp) {
   return Date.now() - 30 * 24 * 60 * 60 * 1000
 }
 
+function getYearSyncStart() {
+  return Date.now() - 365 * 24 * 60 * 60 * 1000
+}
+
 function serializeSnapshot(row) {
   return {
     assetId: row.assetId,
@@ -530,7 +534,11 @@ export async function startSync(mode = 'recent', requestedAssetIds = Object.keys
     const asset = getAssetConfig(assetId)
     const latest = latestRows[index]
     const fromMs =
-      mode === 'full' ? asset.fullSyncStart : getRecentSyncStart(latest?.timestamp)
+      mode === 'full'
+        ? asset.fullSyncStart
+        : mode === 'year'
+          ? getYearSyncStart()
+          : getRecentSyncStart(latest?.timestamp)
 
     return {
       asset,

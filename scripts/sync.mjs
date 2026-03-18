@@ -5,7 +5,9 @@ import { loadLocalEnv } from '../server/env.mjs'
 
 loadLocalEnv()
 
-const mode = process.argv[2] === 'full' ? 'full' : 'recent'
+const requestedMode = process.argv[2]
+const mode =
+  requestedMode === 'full' || requestedMode === 'year' ? requestedMode : 'recent'
 
 async function main() {
   const status = await startSync(mode)

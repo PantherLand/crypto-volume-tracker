@@ -21,7 +21,7 @@ export type SnapshotRow = {
 
 export type SyncRun = {
   id: string
-  mode: 'recent' | 'full'
+  mode: 'recent' | 'year' | 'full'
   assetIds: AssetId[]
   status: 'running' | 'success' | 'failed'
   fetchedPoints: number
