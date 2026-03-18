@@ -641,36 +641,53 @@ function App() {
             </div>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-left text-sm">
-              <thead className={tableHeaderClass}>
-                <tr>
-                  <th className="px-3 py-3 font-normal">时间</th>
-                  <th className="px-3 py-3 font-normal">价格</th>
-                  <th className="px-3 py-3 font-normal">24h 成交量</th>
-                  <th className="px-3 py-3 font-normal">市值</th>
-                  <th className="px-3 py-3 font-normal">换手率</th>
-                </tr>
-              </thead>
-              <tbody>
-                {pagedRecentRows.map((row, index) => (
-                  <tr
-                    key={`${row.assetId}-${row.timestamp}`}
-                    className={`border-t transition-colors duration-200 ${
-                      isDark ? 'text-sand/82' : 'text-[#1f2b3d]'
-                    } ${lineBorderClass} ${
-                      index % 2 === 0 ? rowEvenClass : rowOddClass
-                    }`}
-                  >
-                    <td className="px-3 py-3">{formatTimestamp(row.timestamp)}</td>
-                    <td className="px-3 py-3">{formatCurrency(row.priceUsd)}</td>
-                    <td className="px-3 py-3">{formatCompactNumber(row.volume24hUsd)}</td>
-                    <td className="px-3 py-3">{formatCompactNumber(row.marketCapUsd)}</td>
-                    <td className="px-3 py-3">{formatPercent(row.turnoverRate)}</td>
+          <div className="relative">
+            <div className={`overflow-x-auto transition-opacity duration-200 ${recentLoading ? 'opacity-45' : 'opacity-100'}`}>
+              <table className="min-w-full text-left text-sm">
+                <thead className={tableHeaderClass}>
+                  <tr>
+                    <th className="px-3 py-3 font-normal">时间</th>
+                    <th className="px-3 py-3 font-normal">价格</th>
+                    <th className="px-3 py-3 font-normal">24h 成交量</th>
+                    <th className="px-3 py-3 font-normal">市值</th>
+                    <th className="px-3 py-3 font-normal">换手率</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {pagedRecentRows.map((row, index) => (
+                    <tr
+                      key={`${row.assetId}-${row.timestamp}`}
+                      className={`border-t transition-colors duration-200 ${
+                        isDark ? 'text-sand/82' : 'text-[#1f2b3d]'
+                      } ${lineBorderClass} ${
+                        index % 2 === 0 ? rowEvenClass : rowOddClass
+                      }`}
+                    >
+                      <td className="px-3 py-3">{formatTimestamp(row.timestamp)}</td>
+                      <td className="px-3 py-3">{formatCurrency(row.priceUsd)}</td>
+                      <td className="px-3 py-3">{formatCompactNumber(row.volume24hUsd)}</td>
+                      <td className="px-3 py-3">{formatCompactNumber(row.marketCapUsd)}</td>
+                      <td className="px-3 py-3">{formatPercent(row.turnoverRate)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {recentLoading ? (
+              <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                <div
+                  className={`inline-flex items-center gap-3 rounded-full border px-4 py-2 text-sm shadow-lg ${
+                    isDark
+                      ? 'border-white/10 bg-[#06111e]/92 text-sand'
+                      : 'border-[#d8c7af]/80 bg-[#fffaf1]/96 text-[#243244]'
+                  }`}
+                >
+                  <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-amber" />
+                  <span>更新中...</span>
+                </div>
+              </div>
+            ) : null}
           </div>
 
           <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
