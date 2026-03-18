@@ -41,6 +41,7 @@ function App() {
   const [page, setPage] = useState(1)
   const [pendingAssetId, setPendingAssetId] = useState<AssetId | null>(null)
   const [showSyncHelp, setShowSyncHelp] = useState(false)
+  const [showCoverageHelp, setShowCoverageHelp] = useState(false)
   const [summary, setSummary] = useState<DashboardSummary | null>(null)
   const [chartData, setChartData] = useState<HourlyResponse | null>(null)
   const [recentData, setRecentData] = useState<RecentResponse | null>(null)
@@ -142,11 +143,14 @@ function App() {
 
   return (
     <main className="min-h-screen bg-ink text-sand">
-      {showSyncHelp ? (
+      {showSyncHelp || showCoverageHelp ? (
         <button
-          aria-label="关闭自动同步说明"
+          aria-label="关闭说明"
           className="fixed inset-0 z-10 bg-transparent"
-          onClick={() => setShowSyncHelp(false)}
+          onClick={() => {
+            setShowSyncHelp(false)
+            setShowCoverageHelp(false)
+          }}
           type="button"
         />
       ) : null}
@@ -368,9 +372,31 @@ function App() {
           </div>
 
           <div className="space-y-6">
-            <div className="rounded-[1.75rem] border border-white/10 bg-night/80 p-5 shadow-xl shadow-black/20">
+            <div className="relative rounded-[1.75rem] border border-white/10 bg-night/80 p-5 shadow-xl shadow-black/20">
               <p className="text-xs uppercase tracking-[0.28em] text-sand/50">Coverage</p>
-              <h2 className="mt-2 font-heading text-2xl text-white">数据密度</h2>
+              <div className="mt-2 flex items-center gap-3">
+                <h2 className="font-heading text-2xl text-white">数据密度</h2>
+                <button
+                  aria-expanded={showCoverageHelp}
+                  aria-haspopup="dialog"
+                  aria-label="查看数据说明"
+                  className="flex h-8 w-8 items-center justify-center rounded-full border border-white/15 bg-white/5 text-sm font-semibold text-sand/80 transition hover:bg-white/10 hover:text-white"
+                  onClick={() => setShowCoverageHelp((value) => !value)}
+                  type="button"
+                >
+                  ?
+                </button>
+              </div>
+
+              {showCoverageHelp ? (
+                <div
+                  className="absolute right-5 top-20 z-20 w-[min(24rem,calc(100vw-4rem))] rounded-2xl border border-white/15 bg-[#050b12] p-4 text-left text-sm leading-7 text-sand/88 shadow-[0_24px_80px_rgba(0,0,0,0.6)]"
+                  role="dialog"
+                >
+                  <p>价格、24h 成交量和市值都来自同一个 CoinGecko 历史时间点快照。</p>
+                </div>
+              ) : null}
+
               <div className="mt-5 space-y-4">
                 <DataRow
                   label="最早记录"
@@ -398,7 +424,6 @@ function App() {
                 <p className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 font-mono text-amber-100">
                   turnoverRate = totalVolume(24h) / marketCap
                 </p>
-                <p>价格、24h 成交量和市值都来自同一个 CoinGecko 历史时间点快照。</p>
               </div>
             </div>
           </div>
