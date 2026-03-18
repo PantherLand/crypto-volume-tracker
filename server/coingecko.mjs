@@ -126,7 +126,31 @@ function sleep(ms) {
   })
 }
 
-function requestText(url) {
+async function requestTextWithFetch(url) {
+  const controller = new AbortController()
+  const timeout = setTimeout(() => {
+    controller.abort()
+  }, 25_000)
+
+  try {
+    const response = await fetch(url, {
+      headers: {
+        accept: 'application/json',
+        'x-cg-demo-api-key': getApiKey(),
+      },
+      signal: controller.signal,
+    })
+
+    return {
+      statusCode: response.status,
+      body: await response.text(),
+    }
+  } finally {
+    clearTimeout(timeout)
+  }
+}
+
+function requestTextWithCurl(url) {
   return execFileAsync(
     'curl',
     [
@@ -159,6 +183,22 @@ function requestText(url) {
       body: stdout.slice(0, markerIndex),
     }
   })
+}
+
+async function requestText(url) {
+  try {
+    return await requestTextWithFetch(url)
+  } catch (fetchError) {
+    try {
+      return await requestTextWithCurl(url)
+    } catch (curlError) {
+      if (curlError?.code === 'ENOENT') {
+        throw fetchError
+      }
+
+      throw curlError
+    }
+  }
 }
 
 async function fetchChunk(asset, chunk, attempt = 0) {
