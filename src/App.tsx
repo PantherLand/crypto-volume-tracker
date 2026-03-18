@@ -176,9 +176,11 @@ function App() {
   const inactivePillClass = isDark
     ? 'border-white/10 bg-white/5 text-sand/72 hover:bg-white/10'
     : 'border-[#d8c7af]/80 bg-white/75 text-[#4d5664] hover:bg-white'
-  const themeButtonClass = isDark
-    ? 'border-white/10 bg-white/5 text-sand/78 hover:bg-white/10'
-    : 'border-[#d8c7af]/80 bg-white/75 text-[#4d5664] hover:bg-white'
+  const themeToggleClass = isDark
+    ? 'border-white/10 bg-white/5 text-sand/82 shadow-black/20 hover:bg-white/10'
+    : 'border-[#d8c7af]/80 bg-white/80 text-[#4d5664] shadow-[#bda27a]/20 hover:bg-white'
+  const themeIconClass = isDark ? 'text-sand/45' : 'text-[#9a8c79]'
+  const themeIconActiveClass = isDark ? 'bg-white text-[#09111b]' : 'bg-[#152131] text-[#fffaf3]'
   const popoverClass = isDark
     ? 'border-white/15 bg-[#050b12] text-sand/88 shadow-[0_24px_80px_rgba(0,0,0,0.6)]'
     : 'border-[#cfb998]/80 bg-[#fffaf3] text-[#243244] shadow-[0_24px_80px_rgba(93,72,38,0.18)]'
@@ -209,6 +211,29 @@ function App() {
         />
       ) : null}
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 py-6 sm:px-6 lg:px-8">
+        <div className="flex justify-end">
+          <button
+            aria-label={isDark ? '切换到日间模式' : '切换到夜间模式'}
+            className={`inline-flex items-center gap-2 rounded-full border px-2 py-2 shadow-lg transition ${themeToggleClass}`}
+            onClick={() => setTheme((current) => (current === 'dark' ? 'light' : 'dark'))}
+            type="button"
+          >
+            <span
+              className={`flex h-10 w-10 items-center justify-center rounded-full transition ${
+                !isDark ? themeIconActiveClass : themeIconClass
+              }`}
+            >
+              <SunIcon />
+            </span>
+            <span
+              className={`flex h-10 w-10 items-center justify-center rounded-full transition ${
+                isDark ? themeIconActiveClass : themeIconClass
+              }`}
+            >
+              <MoonIcon />
+            </span>
+          </button>
+        </div>
         <section className={`overflow-hidden rounded-[2rem] border shadow-2xl transition-colors duration-200 ${heroClass}`}>
           <div
             aria-busy={isAssetSwitching}
@@ -218,19 +243,9 @@ function App() {
           >
             <div className="space-y-6">
               <div className="space-y-4">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <p className={`max-w-2xl font-heading text-4xl font-semibold leading-none sm:text-5xl lg:text-6xl ${headingClass}`}>
-                    Crypto Volume Tracker
-                  </p>
-                  <button
-                    className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition ${themeButtonClass}`}
-                    onClick={() => setTheme((current) => (current === 'dark' ? 'light' : 'dark'))}
-                    type="button"
-                  >
-                    <span>{isDark ? '切到日间' : '切到夜间'}</span>
-                    <span>{isDark ? 'Day' : 'Night'}</span>
-                  </button>
-                </div>
+                <p className={`max-w-2xl font-heading text-4xl font-semibold leading-none sm:text-5xl lg:text-6xl ${headingClass}`}>
+                  Crypto Volume Tracker
+                </p>
                 <div className="flex flex-wrap gap-3">
                   {ASSET_OPTIONS.map((asset) => {
                     const isActive = asset.id === assetId
@@ -299,7 +314,7 @@ function App() {
                     aria-expanded={showSyncHelp}
                     aria-haspopup="dialog"
                     aria-label="查看自动同步说明"
-                    className={`flex h-8 w-8 items-center justify-center rounded-full border text-sm font-semibold transition ${themeButtonClass}`}
+                    className={`flex h-8 w-8 items-center justify-center rounded-full border text-sm font-semibold transition ${inactivePillClass}`}
                     onClick={() => setShowSyncHelp((value) => !value)}
                     type="button"
                   >
@@ -455,7 +470,7 @@ function App() {
                   aria-expanded={showCoverageHelp}
                   aria-haspopup="dialog"
                   aria-label="查看数据说明"
-                  className={`flex h-8 w-8 items-center justify-center rounded-full border text-sm font-semibold transition ${themeButtonClass}`}
+                  className={`flex h-8 w-8 items-center justify-center rounded-full border text-sm font-semibold transition ${inactivePillClass}`}
                   onClick={() => setShowCoverageHelp((value) => !value)}
                   type="button"
                 >
@@ -561,14 +576,14 @@ function App() {
             </p>
             <div className="flex items-center gap-2">
               <button
-                className={`rounded-full border px-4 py-2 text-sm transition disabled:cursor-not-allowed disabled:opacity-35 ${themeButtonClass}`}
+                className={`rounded-full border px-4 py-2 text-sm transition disabled:cursor-not-allowed disabled:opacity-35 ${inactivePillClass}`}
                 disabled={!recentData || recentData.meta.page <= 1}
                 onClick={() => setPage((value) => Math.max(1, value - 1))}
               >
                 上一页
               </button>
               <button
-                className={`rounded-full border px-4 py-2 text-sm transition disabled:cursor-not-allowed disabled:opacity-35 ${themeButtonClass}`}
+                className={`rounded-full border px-4 py-2 text-sm transition disabled:cursor-not-allowed disabled:opacity-35 ${inactivePillClass}`}
                 disabled={!recentData || recentData.meta.page >= recentData.meta.totalPages}
                 onClick={() =>
                   setPage((value) =>
@@ -583,6 +598,31 @@ function App() {
         </section>
       </div>
     </main>
+  )
+}
+
+function SunIcon() {
+  return (
+    <svg aria-hidden="true" fill="none" height="18" viewBox="0 0 24 24" width="18">
+      <circle cx="12" cy="12" r="4.5" fill="currentColor" />
+      <path
+        d="M12 2.75V5.25M12 18.75V21.25M21.25 12H18.75M5.25 12H2.75M18.54 5.46L16.77 7.23M7.23 16.77L5.46 18.54M18.54 18.54L16.77 16.77M7.23 7.23L5.46 5.46"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeWidth="1.8"
+      />
+    </svg>
+  )
+}
+
+function MoonIcon() {
+  return (
+    <svg aria-hidden="true" fill="none" height="18" viewBox="0 0 24 24" width="18">
+      <path
+        d="M14.5 3.25C10 4.05 6.75 7.96 6.75 12.5C6.75 17.63 10.87 21.75 16 21.75C18.12 21.75 20.08 21.05 21.64 19.87C17.21 19.59 13.75 15.95 13.75 11.43C13.75 8.45 15.25 5.79 17.56 4.19C16.61 3.54 15.6 3.23 14.5 3.25Z"
+        fill="currentColor"
+      />
+    </svg>
   )
 }
 
