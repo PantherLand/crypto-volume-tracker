@@ -142,6 +142,14 @@ function App() {
 
   return (
     <main className="min-h-screen bg-ink text-sand">
+      {showSyncHelp ? (
+        <button
+          aria-label="关闭自动同步说明"
+          className="fixed inset-0 z-10 bg-transparent"
+          onClick={() => setShowSyncHelp(false)}
+          type="button"
+        />
+      ) : null}
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 py-6 sm:px-6 lg:px-8">
         <section className="overflow-hidden rounded-[2rem] border border-white/10 bg-[radial-gradient(circle_at_top_left,_rgba(255,184,77,0.22),_transparent_32%),linear-gradient(135deg,_rgba(13,27,42,0.96),_rgba(4,11,20,0.98))] shadow-2xl shadow-black/30">
           <div
@@ -216,6 +224,7 @@ function App() {
                   <h2 className="font-heading text-2xl text-white">后台自动同步</h2>
                   <button
                     aria-expanded={showSyncHelp}
+                    aria-haspopup="dialog"
                     aria-label="查看自动同步说明"
                     className="flex h-8 w-8 items-center justify-center rounded-full border border-white/15 bg-white/5 text-sm font-semibold text-sand/80 transition hover:bg-white/10 hover:text-white"
                     onClick={() => setShowSyncHelp((value) => !value)}
@@ -226,10 +235,14 @@ function App() {
                 </div>
 
                 {showSyncHelp ? (
-                  <div className="mt-4 rounded-2xl border border-white/10 bg-black/35 p-4 text-sm leading-7 text-sand/76">
+                  <div
+                    className="absolute right-0 top-14 z-20 w-[min(26rem,calc(100vw-4rem))] rounded-2xl border border-white/10 bg-[#07101a]/96 p-4 text-left text-sm leading-7 text-sand/76 shadow-2xl shadow-black/40 backdrop-blur"
+                    role="dialog"
+                  >
                     <p>服务启动后会自动检查 BTC 和 ETH 是否缺少最近小时数据。</p>
                     <p>如果某个币种数据为空，或离当前时间超过约 70 分钟，就会在后台触发最近区间补数。</p>
                     <p>全量历史仍保留命令行同步能力，但不再把同步按钮暴露给页面用户。</p>
+                    <p>BTC 全量历史从 2010-07-17 起抓取，ETH 全量历史从 2015-08-07 起抓取。</p>
                   </div>
                 ) : null}
               </div>
@@ -386,7 +399,6 @@ function App() {
                   turnoverRate = totalVolume(24h) / marketCap
                 </p>
                 <p>价格、24h 成交量和市值都来自同一个 CoinGecko 历史时间点快照。</p>
-                <p>BTC 全量历史从 2010-07-17 起抓取，ETH 全量历史从 2015-08-07 起抓取。</p>
               </div>
             </div>
           </div>
