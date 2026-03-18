@@ -1,0 +1,44 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model AssetHourlySnapshot {
+  id           BigInt   @id @default(autoincrement())
+  assetId      String   @default("bitcoin")
+  symbol       String   @default("BTC")
+  name         String   @default("Bitcoin")
+  timestamp    DateTime @db.Timestamptz(3)
+  priceUsd     Float
+  marketCapUsd Float
+  volume24hUsd Float
+  turnoverRate Float
+  source       String   @default("coingecko")
+  createdAt    DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt    DateTime @updatedAt @db.Timestamptz(3)
+
+  @@unique([assetId, timestamp])
+  @@index([assetId, timestamp(sort: Desc)])
+  @@map("BtcHourlySnapshot")
+}
+
+model SyncRun {
+  id            String   @id @default(cuid())
+  mode          String
+  assetIds      String   @default("bitcoin,ethereum")
+  status        String
+  requestedFrom DateTime? @db.Timestamptz(3)
+  requestedTo   DateTime? @db.Timestamptz(3)
+  chunkCount    Int      @default(0)
+  fetchedPoints Int      @default(0)
+  insertedPoints Int     @default(0)
+  errorMessage  String?
+  startedAt     DateTime @default(now()) @db.Timestamptz(3)
+  finishedAt    DateTime? @db.Timestamptz(3)
+
+  @@index([startedAt(sort: Desc)])
+}
