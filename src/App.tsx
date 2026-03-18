@@ -452,8 +452,13 @@ function App() {
                 </tr>
               </thead>
               <tbody>
-                {recentData?.rows.map((row) => (
-                  <tr key={`${row.assetId}-${row.timestamp}`} className="border-t border-white/8 text-sand/82">
+                {recentData?.rows.map((row, index) => (
+                  <tr
+                    key={`${row.assetId}-${row.timestamp}`}
+                    className={`border-t border-white/8 text-sand/82 ${
+                      index % 2 === 0 ? 'bg-white/[0.02]' : 'bg-transparent'
+                    }`}
+                  >
                     <td className="px-3 py-3">{formatTimestamp(row.timestamp)}</td>
                     <td className="px-3 py-3">{formatCurrency(row.priceUsd)}</td>
                     <td className="px-3 py-3">{formatCompactNumber(row.volume24hUsd)}</td>
