@@ -132,8 +132,14 @@ function App() {
         <section className="overflow-hidden rounded-[2rem] border border-white/10 bg-[radial-gradient(circle_at_top_left,_rgba(255,184,77,0.22),_transparent_32%),linear-gradient(135deg,_rgba(13,27,42,0.96),_rgba(4,11,20,0.98))] shadow-2xl shadow-black/30">
           <div className="grid gap-8 px-6 py-8 lg:grid-cols-[1.45fr_0.9fr] lg:px-10 lg:py-10">
             <div className="space-y-6">
-              <div className="inline-flex items-center rounded-full border border-amber-200/20 bg-amber-300/10 px-3 py-1 text-xs uppercase tracking-[0.28em] text-amber-100/80">
-                CoinGecko + Prisma + PostgreSQL
+              <div className="space-y-4">
+                <p className="max-w-2xl font-heading text-4xl font-semibold leading-none text-white sm:text-5xl lg:text-6xl">
+                  BTC / ETH 每小时价格与换手率追踪台
+                </p>
+                <p className="max-w-2xl text-sm leading-7 text-sand/72 sm:text-base">
+                  当前视图聚焦 {activeAsset.name}。换手率 = 该时点 24 小时成交量 / 该时点市值。
+                  数据唯一来源是 CoinGecko，后端按小时级历史快照入库，并在后台每 1 小时自动补最近数据。
+                </p>
               </div>
               <div className="flex flex-wrap gap-3">
                 {ASSET_OPTIONS.map((asset) => (
@@ -149,15 +155,6 @@ function App() {
                     {asset.symbol} · {asset.name}
                   </button>
                 ))}
-              </div>
-              <div className="space-y-4">
-                <p className="max-w-2xl font-heading text-4xl font-semibold leading-none text-white sm:text-5xl lg:text-6xl">
-                  BTC / ETH 每小时价格与换手率追踪台
-                </p>
-                <p className="max-w-2xl text-sm leading-7 text-sand/72 sm:text-base">
-                  当前视图聚焦 {activeAsset.name}。换手率 = 该时点 24 小时成交量 / 该时点市值。
-                  数据唯一来源是 CoinGecko，后端按小时级历史快照入库，并在后台每 1 小时自动补最近数据。
-                </p>
               </div>
               <div className="grid gap-3 sm:grid-cols-3">
                 <MetricCard
