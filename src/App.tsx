@@ -32,8 +32,8 @@ const ASSET_OPTIONS: Array<{ id: AssetId; symbol: 'BTC' | 'ETH'; name: string }>
   { id: 'bitcoin', symbol: 'BTC', name: 'Bitcoin' },
   { id: 'ethereum', symbol: 'ETH', name: 'Ethereum' },
 ]
-const PAGE_SIZE = 10
-const RECENT_WINDOW = 50
+const PAGE_SIZE = 20
+const RECENT_WINDOW = 60
 
 function App() {
   const [assetId, setAssetId] = useState<AssetId>('bitcoin')
@@ -433,7 +433,7 @@ function App() {
           <div className="mb-4 flex flex-col gap-3 border-b border-white/10 pb-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <p className="text-xs uppercase tracking-[0.28em] text-sand/50">Recent rows</p>
-              <h2 className="mt-2 font-heading text-2xl text-white">最近 50 条小时快照</h2>
+              <h2 className="mt-2 font-heading text-2xl text-white">最近小时快照</h2>
             </div>
             <p className="text-sm text-sand/55">
               当前第 {recentData?.meta.page ?? 1} / {recentData?.meta.totalPages ?? 1} 页
