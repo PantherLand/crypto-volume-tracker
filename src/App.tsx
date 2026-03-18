@@ -456,7 +456,7 @@ function App() {
                   <tr
                     key={`${row.assetId}-${row.timestamp}`}
                     className={`border-t border-white/8 text-sand/82 ${
-                      index % 2 === 0 ? 'bg-white/[0.02]' : 'bg-transparent'
+                      index % 2 === 0 ? 'bg-white/[0.06]' : 'bg-[#020811]'
                     }`}
                   >
                     <td className="px-3 py-3">{formatTimestamp(row.timestamp)}</td>
