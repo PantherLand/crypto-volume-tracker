@@ -11,6 +11,8 @@ const CHUNK_SPAN_MS = 90 * 24 * 60 * 60 * 1000 - 60 * 60 * 1000
 const HOURLY_SYNC_INTERVAL_MS = 60 * 60 * 1000
 const HOURLY_SYNC_MINUTE_OFFSET = 5
 const REFRESH_THRESHOLD_MS = 70 * 60 * 1000
+const MAX_RECENT_WINDOW_ROWS = 24 * 365
+const MAX_RECENT_PAGE_SIZE = 24 * 365
 
 const ASSET_CONFIG = {
   bitcoin: {
@@ -450,8 +452,8 @@ export async function getRecentRows(
     },
   })
 
-  const boundedWindow = Math.max(1, Math.min(windowSize, 200))
-  const boundedPageSize = Math.max(1, Math.min(pageSize, 25))
+  const boundedWindow = Math.max(1, Math.min(windowSize, MAX_RECENT_WINDOW_ROWS))
+  const boundedPageSize = Math.max(1, Math.min(pageSize, MAX_RECENT_PAGE_SIZE))
   const availableWindow = Math.min(totalRows, boundedWindow)
   const totalPages = Math.max(1, Math.ceil(availableWindow / boundedPageSize))
   const currentPage = Math.max(1, Math.min(page, totalPages))
