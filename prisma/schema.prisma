@@ -23,7 +23,6 @@ model AssetHourlySnapshot {
 
   @@unique([assetId, timestamp])
   @@index([assetId, timestamp(sort: Desc)])
-  @@map("BtcHourlySnapshot")
 }
 
 model SyncRun {
