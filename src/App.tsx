@@ -675,7 +675,11 @@ function App() {
             </div>
 
             {recentLoading ? (
-              <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+              <div
+                className={`pointer-events-none absolute inset-0 flex items-center justify-center backdrop-blur-sm ${
+                  isDark ? 'bg-[#06111e]/22' : 'bg-[#fffaf1]/28'
+                }`}
+              >
                 <div
                   className={`inline-flex items-center gap-3 rounded-full border px-4 py-2 text-sm shadow-lg ${
                     isDark
