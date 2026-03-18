@@ -39,6 +39,8 @@ function App() {
   const [assetId, setAssetId] = useState<AssetId>('bitcoin')
   const [range, setRange] = useState<RangePreset>('30d')
   const [page, setPage] = useState(1)
+  const [pendingAssetId, setPendingAssetId] = useState<AssetId | null>(null)
+  const [showSyncHelp, setShowSyncHelp] = useState(false)
   const [summary, setSummary] = useState<DashboardSummary | null>(null)
   const [chartData, setChartData] = useState<HourlyResponse | null>(null)
   const [recentData, setRecentData] = useState<RecentResponse | null>(null)
@@ -105,6 +107,7 @@ function App() {
       } finally {
         if (!cancelled) {
           setLoading(false)
+          setPendingAssetId(null)
         }
       }
     }
@@ -125,32 +128,59 @@ function App() {
   const latest = summary?.latest ?? null
   const accentColor = activeAsset.id === 'bitcoin' ? '#7dd3fc' : '#34d399'
   const chartName = `${activeAsset.symbol} 价格`
+  const isAssetSwitching = loading && pendingAssetId !== null
+
+  function handleAssetChange(nextAssetId: AssetId) {
+    if (nextAssetId === assetId) {
+      return
+    }
+
+    setPendingAssetId(nextAssetId)
+    setLoading(true)
+    setAssetId(nextAssetId)
+  }
 
   return (
     <main className="min-h-screen bg-ink text-sand">
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 py-6 sm:px-6 lg:px-8">
         <section className="overflow-hidden rounded-[2rem] border border-white/10 bg-[radial-gradient(circle_at_top_left,_rgba(255,184,77,0.22),_transparent_32%),linear-gradient(135deg,_rgba(13,27,42,0.96),_rgba(4,11,20,0.98))] shadow-2xl shadow-black/30">
-          <div className="grid gap-8 px-6 py-8 lg:grid-cols-[1.45fr_0.9fr] lg:px-10 lg:py-10">
+          <div
+            aria-busy={isAssetSwitching}
+            className={`grid gap-8 px-6 py-8 transition-opacity duration-200 lg:grid-cols-[1.45fr_0.9fr] lg:px-10 lg:py-10 ${
+              isAssetSwitching ? 'opacity-70' : 'opacity-100'
+            }`}
+          >
             <div className="space-y-6">
               <div className="space-y-4">
                 <p className="max-w-2xl font-heading text-4xl font-semibold leading-none text-white sm:text-5xl lg:text-6xl">
                   Crypto Volume Tracker
                 </p>
                 <div className="flex flex-wrap gap-3">
-                {ASSET_OPTIONS.map((asset) => (
-                  <button
-                    key={asset.id}
-                    className={`rounded-full px-5 py-2 text-sm font-semibold transition ${
-                      asset.id === assetId
-                        ? 'bg-white text-ink'
-                        : 'border border-white/10 bg-white/5 text-sand/72 hover:bg-white/10'
-                    }`}
-                    onClick={() => setAssetId(asset.id)}
-                  >
-                    {asset.symbol} · {asset.name}
-                  </button>
-                ))}
-              </div>
+                  {ASSET_OPTIONS.map((asset) => {
+                    const isActive = asset.id === assetId
+                    const isPending = pendingAssetId === asset.id
+
+                    return (
+                      <button
+                        key={asset.id}
+                        aria-busy={isPending}
+                        className={`inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold transition ${
+                          isActive
+                            ? 'bg-white text-ink'
+                            : 'border border-white/10 bg-white/5 text-sand/72 hover:bg-white/10'
+                        }`}
+                        disabled={isAssetSwitching}
+                        onClick={() => handleAssetChange(asset.id)}
+                      >
+                        {isPending ? (
+                          <span className="h-2 w-2 animate-pulse rounded-full bg-current" />
+                        ) : null}
+                        <span>{asset.symbol} · {asset.name}</span>
+                        {isPending ? <span className="text-xs opacity-70">Loading...</span> : null}
+                      </button>
+                    )
+                  })}
+                </div>
                 <p className="max-w-2xl text-sm leading-7 text-sand/72 sm:text-base">
                   当前视图聚焦 {activeAsset.name}。换手率 = 该时点 24 小时成交量 / 该时点市值。
                   数据唯一来源是 CoinGecko，后端按小时级历史快照入库，并在后台每 1 小时自动补最近数据。
@@ -180,15 +210,28 @@ function App() {
             </div>
 
             <aside className="space-y-4 rounded-[1.75rem] border border-white/10 bg-white/5 p-5 backdrop-blur">
-              <div>
+              <div className="relative">
                 <p className="text-xs uppercase tracking-[0.28em] text-sand/55">Background refresh</p>
-                <h2 className="mt-2 font-heading text-2xl text-white">后台自动同步</h2>
-              </div>
+                <div className="mt-2 flex items-center gap-3">
+                  <h2 className="font-heading text-2xl text-white">后台自动同步</h2>
+                  <button
+                    aria-expanded={showSyncHelp}
+                    aria-label="查看自动同步说明"
+                    className="flex h-8 w-8 items-center justify-center rounded-full border border-white/15 bg-white/5 text-sm font-semibold text-sand/80 transition hover:bg-white/10 hover:text-white"
+                    onClick={() => setShowSyncHelp((value) => !value)}
+                    type="button"
+                  >
+                    ?
+                  </button>
+                </div>
 
-              <div className="rounded-2xl border border-white/10 bg-black/20 p-4 text-sm leading-7 text-sand/76">
-                <p>服务启动后会自动检查 BTC 和 ETH 是否缺少最近小时数据。</p>
-                <p>如果某个币种数据为空，或离当前时间超过约 70 分钟，就会在后台触发最近区间补数。</p>
-                <p>全量历史仍保留命令行同步能力，但不再把同步按钮暴露给页面用户。</p>
+                {showSyncHelp ? (
+                  <div className="mt-4 rounded-2xl border border-white/10 bg-black/35 p-4 text-sm leading-7 text-sand/76">
+                    <p>服务启动后会自动检查 BTC 和 ETH 是否缺少最近小时数据。</p>
+                    <p>如果某个币种数据为空，或离当前时间超过约 70 分钟，就会在后台触发最近区间补数。</p>
+                    <p>全量历史仍保留命令行同步能力，但不再把同步按钮暴露给页面用户。</p>
+                  </div>
+                ) : null}
               </div>
 
               <div className="space-y-3">
