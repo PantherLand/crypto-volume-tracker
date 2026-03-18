@@ -35,8 +35,14 @@ const ASSET_OPTIONS: Array<{ id: AssetId; symbol: 'BTC' | 'ETH'; name: string }>
 const PAGE_SIZE = 20
 const RECENT_WINDOW = 60
 const STORAGE_THEME_KEY = 'volume-track-theme'
+const RECENT_FREQUENCY_OPTIONS = [
+  { id: '1h', label: '每1小时', bucketHours: 1 },
+  { id: '4h', label: '每4小时', bucketHours: 4 },
+  { id: '1d', label: '每天', bucketHours: 24 },
+] as const
 
 type ThemeMode = 'dark' | 'light'
+type RecentFrequency = (typeof RECENT_FREQUENCY_OPTIONS)[number]['id']
 
 function App() {
   const [theme, setTheme] = useState<ThemeMode>(() => {
@@ -54,7 +60,8 @@ function App() {
   })
   const [assetId, setAssetId] = useState<AssetId>('bitcoin')
   const [range, setRange] = useState<RangePreset>('30d')
-  const [page, setPage] = useState(1)
+  const [recentPage, setRecentPage] = useState(1)
+  const [recentFrequency, setRecentFrequency] = useState<RecentFrequency>('1h')
   const [pendingAssetId, setPendingAssetId] = useState<AssetId | null>(null)
   const [showSyncHelp, setShowSyncHelp] = useState(false)
   const [showCoverageHelp, setShowCoverageHelp] = useState(false)
@@ -65,8 +72,12 @@ function App() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    setPage(1)
+    setRecentPage(1)
   }, [assetId])
+
+  useEffect(() => {
+    setRecentPage(1)
+  }, [recentFrequency])
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme
@@ -85,8 +96,8 @@ function App() {
         })
         const recentSearch = new URLSearchParams({
           asset: assetId,
-          page: String(page),
-          pageSize: String(PAGE_SIZE),
+          page: '1',
+          pageSize: String(RECENT_WINDOW),
           window: String(RECENT_WINDOW),
         })
         const chartSearch = new URLSearchParams({
@@ -118,10 +129,6 @@ function App() {
         setChartData(chartJson)
         setRecentData(recentJson)
         setError(null)
-
-        if (recentJson.meta.page !== page) {
-          setPage(recentJson.meta.page)
-        }
       } catch (loadError) {
         if (!cancelled) {
           setError(loadError instanceof Error ? loadError.message : '加载失败')
@@ -144,7 +151,7 @@ function App() {
       cancelled = true
       window.clearInterval(timer)
     }
-  }, [assetId, page, range])
+  }, [assetId, range])
 
   const activeAsset = summary?.asset ?? ASSET_OPTIONS.find((asset) => asset.id === assetId) ?? ASSET_OPTIONS[0]
   const latest = summary?.latest ?? null
@@ -186,6 +193,31 @@ function App() {
     : 'border-[#cfb998]/80 bg-[#fffaf3] text-[#243244] shadow-[0_24px_80px_rgba(93,72,38,0.18)]'
   const chartGrid = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(31,41,55,0.09)'
   const chartAxis = isDark ? 'rgba(238,229,212,0.4)' : 'rgba(70,80,94,0.7)'
+  const recentBucketHours =
+    RECENT_FREQUENCY_OPTIONS.find((option) => option.id === recentFrequency)?.bucketHours ?? 1
+  const recentBuckets = new Set<number>()
+  const filteredRecentRows = (recentData?.rows ?? []).filter((row) => {
+    const bucket = Math.floor(Date.parse(row.timestamp) / (recentBucketHours * 60 * 60 * 1000))
+
+    if (recentBuckets.has(bucket)) {
+      return false
+    }
+
+    recentBuckets.add(bucket)
+    return true
+  })
+  const totalRecentPages = Math.max(1, Math.ceil(filteredRecentRows.length / PAGE_SIZE))
+  const safeRecentPage = Math.min(recentPage, totalRecentPages)
+  const pagedRecentRows = filteredRecentRows.slice(
+    (safeRecentPage - 1) * PAGE_SIZE,
+    safeRecentPage * PAGE_SIZE,
+  )
+
+  useEffect(() => {
+    if (recentPage !== safeRecentPage) {
+      setRecentPage(safeRecentPage)
+    }
+  }, [recentPage, safeRecentPage])
 
   function handleAssetChange(nextAssetId: AssetId) {
     if (nextAssetId === assetId) {
@@ -533,9 +565,29 @@ function App() {
               <p className={`text-xs uppercase tracking-[0.28em] ${mutedTextClass}`}>Recent rows</p>
               <h2 className={`mt-2 font-heading text-2xl ${headingClass}`}>最近60小时快照</h2>
             </div>
-            <p className={`text-sm ${mutedTextClass}`}>
-              当前第 {recentData?.meta.page ?? 1} / {recentData?.meta.totalPages ?? 1} 页
-            </p>
+            <div className="flex flex-col gap-3 sm:items-end">
+              <div className="flex flex-wrap gap-2">
+                {RECENT_FREQUENCY_OPTIONS.map((option) => (
+                  <button
+                    key={option.id}
+                    className={`rounded-full px-4 py-2 text-sm transition ${
+                      recentFrequency === option.id
+                        ? isDark
+                          ? 'bg-amber text-ink'
+                          : 'bg-[#182231] text-[#fffaf3]'
+                        : inactivePillClass
+                    }`}
+                    onClick={() => setRecentFrequency(option.id)}
+                    type="button"
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+              <p className={`text-sm ${mutedTextClass}`}>
+                当前第 {safeRecentPage} / {totalRecentPages} 页
+              </p>
+            </div>
           </div>
 
           <div className="overflow-x-auto">
@@ -550,7 +602,7 @@ function App() {
                 </tr>
               </thead>
               <tbody>
-                {recentData?.rows.map((row, index) => (
+                {pagedRecentRows.map((row, index) => (
                   <tr
                     key={`${row.assetId}-${row.timestamp}`}
                     className={`border-t transition-colors duration-200 ${
@@ -572,24 +624,21 @@ function App() {
 
           <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
             <p className={`text-sm ${mutedTextClass}`}>
-              每页 {recentData?.meta.pageSize ?? PAGE_SIZE} 条，共展示最近 {recentData?.meta.windowSize ?? 0} 条快照。
+              当前按 {RECENT_FREQUENCY_OPTIONS.find((option) => option.id === recentFrequency)?.label}
+              显示，每页 {PAGE_SIZE} 条，共筛出 {filteredRecentRows.length} 条。
             </p>
             <div className="flex items-center gap-2">
               <button
                 className={`rounded-full border px-4 py-2 text-sm transition disabled:cursor-not-allowed disabled:opacity-35 ${inactivePillClass}`}
-                disabled={!recentData || recentData.meta.page <= 1}
-                onClick={() => setPage((value) => Math.max(1, value - 1))}
+                disabled={safeRecentPage <= 1}
+                onClick={() => setRecentPage((value) => Math.max(1, value - 1))}
               >
                 上一页
               </button>
               <button
                 className={`rounded-full border px-4 py-2 text-sm transition disabled:cursor-not-allowed disabled:opacity-35 ${inactivePillClass}`}
-                disabled={!recentData || recentData.meta.page >= recentData.meta.totalPages}
-                onClick={() =>
-                  setPage((value) =>
-                    recentData ? Math.min(recentData.meta.totalPages, value + 1) : value,
-                  )
-                }
+                disabled={safeRecentPage >= totalRecentPages}
+                onClick={() => setRecentPage((value) => Math.min(totalRecentPages, value + 1))}
               >
                 下一页
               </button>
