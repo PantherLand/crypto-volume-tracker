@@ -9,6 +9,7 @@ loadLocalEnv()
 const COINGECKO_API_BASE = 'https://api.coingecko.com/api/v3'
 const CHUNK_SPAN_MS = 90 * 24 * 60 * 60 * 1000 - 60 * 60 * 1000
 const HOURLY_SYNC_INTERVAL_MS = 60 * 60 * 1000
+const HOURLY_SYNC_MINUTE_OFFSET = 5
 const REFRESH_THRESHOLD_MS = 70 * 60 * 1000
 
 const ASSET_CONFIG = {
@@ -712,8 +713,22 @@ export async function ensureRecentData() {
   return startSync('recent', staleAssetIds)
 }
 
+function getMsUntilNextHourlySync(nowMs = Date.now()) {
+  const nextRun = new Date(nowMs)
+  nextRun.setMinutes(HOURLY_SYNC_MINUTE_OFFSET, 0, 0)
+
+  if (nextRun.getTime() <= nowMs) {
+    nextRun.setHours(nextRun.getHours() + 1)
+  }
+
+  return nextRun.getTime() - nowMs
+}
+
 export function startBackgroundSyncJob() {
-  const execute = async () => {
+  let alignmentTimer = null
+  let intervalTimer = null
+
+  const executeStartupCheck = async () => {
     try {
       await ensureRecentData()
     } catch (error) {
@@ -721,12 +736,40 @@ export function startBackgroundSyncJob() {
     }
   }
 
-  void execute()
+  const executeHourlyRefresh = async () => {
+    try {
+      await startSync('recent')
+    } catch (error) {
+      console.error('Scheduled hourly sync failed:', error)
+    }
+  }
 
-  const timer = setInterval(() => {
-    void execute()
-  }, HOURLY_SYNC_INTERVAL_MS)
+  const scheduleAlignedHourlyRefresh = () => {
+    alignmentTimer = setTimeout(() => {
+      void executeHourlyRefresh()
 
-  timer.unref?.()
-  return timer
+      intervalTimer = setInterval(() => {
+        void executeHourlyRefresh()
+      }, HOURLY_SYNC_INTERVAL_MS)
+
+      intervalTimer.unref?.()
+    }, getMsUntilNextHourlySync())
+
+    alignmentTimer.unref?.()
+  }
+
+  void executeStartupCheck()
+  scheduleAlignedHourlyRefresh()
+
+  return {
+    stop() {
+      if (alignmentTimer) {
+        clearTimeout(alignmentTimer)
+      }
+
+      if (intervalTimer) {
+        clearInterval(intervalTimer)
+      }
+    },
+  }
 }
