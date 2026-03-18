@@ -1,4 +1,6 @@
+import { execFile } from 'node:child_process'
 import process from 'node:process'
+import { promisify } from 'node:util'
 import { prisma } from './db.mjs'
 
 process.loadEnvFile?.()
@@ -24,6 +26,7 @@ const ASSET_CONFIG = {
 }
 
 const DEFAULT_ASSET_ID = 'bitcoin'
+const execFileAsync = promisify(execFile)
 
 let activeSync = null
 
@@ -122,6 +125,41 @@ function sleep(ms) {
   })
 }
 
+function requestText(url) {
+  return execFileAsync(
+    'curl',
+    [
+      '-sS',
+      '--connect-timeout',
+      '10',
+      '--max-time',
+      '25',
+      '-H',
+      'accept: application/json',
+      '-H',
+      `x-cg-demo-api-key: ${getApiKey()}`,
+      '-w',
+      '\n__STATUS__:%{http_code}',
+      url.toString(),
+    ],
+    {
+      maxBuffer: 20 * 1024 * 1024,
+    },
+  ).then(({ stdout }) => {
+    const marker = '\n__STATUS__:'
+    const markerIndex = stdout.lastIndexOf(marker)
+
+    if (markerIndex === -1) {
+      throw new Error('Missing HTTP status marker from curl response')
+    }
+
+    return {
+      statusCode: Number(stdout.slice(markerIndex + marker.length).trim()),
+      body: stdout.slice(0, markerIndex),
+    }
+  })
+}
+
 async function fetchChunk(asset, chunk, attempt = 0) {
   const url = new URL(`${COINGECKO_API_BASE}/coins/${asset.id}/market_chart/range`)
   url.searchParams.set('vs_currency', 'usd')
@@ -131,12 +169,7 @@ async function fetchChunk(asset, chunk, attempt = 0) {
   let response
 
   try {
-    response = await fetch(url, {
-      headers: {
-        accept: 'application/json',
-        'x-cg-demo-api-key': getApiKey(),
-      },
-    })
+    response = await requestText(url)
   } catch (error) {
     if (attempt < 5) {
       await sleep(1200 * (attempt + 1))
@@ -146,17 +179,18 @@ async function fetchChunk(asset, chunk, attempt = 0) {
     throw error
   }
 
-  if (response.status === 429 && attempt < 5) {
+  if (response.statusCode === 429 && attempt < 5) {
     await sleep(1200 * (attempt + 1))
     return fetchChunk(asset, chunk, attempt + 1)
   }
 
-  if (!response.ok) {
-    const message = await response.text()
-    throw new Error(`${asset.symbol} CoinGecko request failed (${response.status}): ${message}`)
+  if (response.statusCode < 200 || response.statusCode >= 300) {
+    throw new Error(
+      `${asset.symbol} CoinGecko request failed (${response.statusCode}): ${response.body}`,
+    )
   }
 
-  const payload = await response.json()
+  const payload = JSON.parse(response.body)
   return mergeSeries(asset, payload)
 }
 
