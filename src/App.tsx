@@ -236,7 +236,7 @@ function App() {
 
                 {showSyncHelp ? (
                   <div
-                    className="absolute right-0 top-14 z-20 w-[min(26rem,calc(100vw-4rem))] rounded-2xl border border-white/10 bg-[#07101a]/96 p-4 text-left text-sm leading-7 text-sand/76 shadow-2xl shadow-black/40 backdrop-blur"
+                    className="absolute right-0 top-14 z-20 w-[min(26rem,calc(100vw-4rem))] rounded-2xl border border-white/15 bg-[#050b12] p-4 text-left text-sm leading-7 text-sand/88 shadow-[0_24px_80px_rgba(0,0,0,0.6)]"
                     role="dialog"
                   >
                     <p>服务启动后会自动检查 BTC 和 ETH 是否缺少最近小时数据。</p>
