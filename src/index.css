@@ -6,15 +6,26 @@
 
 @layer base {
   :root {
-    color: #eee5d4;
-    background:
-      radial-gradient(circle at top, rgba(255, 184, 77, 0.14), transparent 28%),
+    --page-text: #eee5d4;
+    --page-bg:
+      radial-gradient(circle at 12% 18%, rgba(255, 184, 77, 0.08), transparent 24%),
+      radial-gradient(circle at 85% 8%, rgba(125, 211, 252, 0.11), transparent 20%),
       linear-gradient(180deg, #09111b 0%, #030712 58%, #02050a 100%);
+    color: var(--page-text);
+    background: var(--page-bg);
     font-family: 'IBM Plex Sans', sans-serif;
     font-synthesis: none;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+  }
+
+  :root[data-theme='light'] {
+    --page-text: #182231;
+    --page-bg:
+      radial-gradient(circle at 14% 16%, rgba(249, 181, 73, 0.2), transparent 24%),
+      radial-gradient(circle at 82% 12%, rgba(98, 168, 255, 0.18), transparent 18%),
+      linear-gradient(180deg, #f7f1e4 0%, #efe6d6 54%, #e7ded0 100%);
   }
 
   * {
@@ -29,10 +40,11 @@
     margin: 0;
     min-width: 320px;
     min-height: 100vh;
-    background:
-      radial-gradient(circle at 12% 18%, rgba(255, 184, 77, 0.08), transparent 24%),
-      radial-gradient(circle at 85% 8%, rgba(125, 211, 252, 0.11), transparent 20%),
-      linear-gradient(180deg, #09111b 0%, #030712 58%, #02050a 100%);
+    background: var(--page-bg);
+    color: var(--page-text);
+    transition:
+      background 180ms ease,
+      color 180ms ease;
   }
 
   button {
