@@ -68,7 +68,8 @@ function App() {
   const [summary, setSummary] = useState<DashboardSummary | null>(null)
   const [chartData, setChartData] = useState<HourlyResponse | null>(null)
   const [recentData, setRecentData] = useState<RecentResponse | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [dashboardLoading, setDashboardLoading] = useState(true)
+  const [recentLoading, setRecentLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const activeRecentFrequency = RECENT_FREQUENCY_OPTIONS.find((option) => option.id === recentFrequency)
     ?? RECENT_FREQUENCY_OPTIONS[0]
@@ -94,37 +95,29 @@ function App() {
     let cancelled = false
 
     async function loadDashboard() {
-      setLoading(true)
+      setDashboardLoading(true)
 
       try {
         const search = new URLSearchParams({
           asset: assetId,
-        })
-        const recentSearch = new URLSearchParams({
-          asset: assetId,
-          page: '1',
-          pageSize: String(recentWindowHours),
-          window: String(recentWindowHours),
         })
         const chartSearch = new URLSearchParams({
           asset: assetId,
           range,
         })
 
-        const [summaryResponse, chartResponse, recentResponse] = await Promise.all([
+        const [summaryResponse, chartResponse] = await Promise.all([
           fetch(`/api/summary?${search.toString()}`),
           fetch(`/api/hourly?${chartSearch.toString()}`),
-          fetch(`/api/recent?${recentSearch.toString()}`),
         ])
 
-        if (!summaryResponse.ok || !chartResponse.ok || !recentResponse.ok) {
+        if (!summaryResponse.ok || !chartResponse.ok) {
           throw new Error('读取本地加密货币数据失败')
         }
 
-        const [summaryJson, chartJson, recentJson] = await Promise.all([
+        const [summaryJson, chartJson] = await Promise.all([
           summaryResponse.json() as Promise<DashboardSummary>,
           chartResponse.json() as Promise<HourlyResponse>,
-          recentResponse.json() as Promise<RecentResponse>,
         ])
 
         if (cancelled) {
@@ -133,7 +126,6 @@ function App() {
 
         setSummary(summaryJson)
         setChartData(chartJson)
-        setRecentData(recentJson)
         setError(null)
       } catch (loadError) {
         if (!cancelled) {
@@ -141,7 +133,7 @@ function App() {
         }
       } finally {
         if (!cancelled) {
-          setLoading(false)
+          setDashboardLoading(false)
           setPendingAssetId(null)
         }
       }
@@ -157,13 +149,63 @@ function App() {
       cancelled = true
       window.clearInterval(timer)
     }
-  }, [assetId, range, recentWindowHours])
+  }, [assetId, range])
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function loadRecentRows() {
+      setRecentLoading(true)
+
+      try {
+        const recentSearch = new URLSearchParams({
+          asset: assetId,
+          page: '1',
+          pageSize: String(recentWindowHours),
+          window: String(recentWindowHours),
+        })
+        const recentResponse = await fetch(`/api/recent?${recentSearch.toString()}`)
+
+        if (!recentResponse.ok) {
+          throw new Error('读取最近快照失败')
+        }
+
+        const recentJson = await recentResponse.json() as RecentResponse
+
+        if (cancelled) {
+          return
+        }
+
+        setRecentData(recentJson)
+        setError(null)
+      } catch (loadError) {
+        if (!cancelled) {
+          setError(loadError instanceof Error ? loadError.message : '加载失败')
+        }
+      } finally {
+        if (!cancelled) {
+          setRecentLoading(false)
+        }
+      }
+    }
+
+    void loadRecentRows()
+
+    const timer = window.setInterval(() => {
+      void loadRecentRows()
+    }, 5 * 60 * 1000)
+
+    return () => {
+      cancelled = true
+      window.clearInterval(timer)
+    }
+  }, [assetId, recentWindowHours])
 
   const activeAsset = summary?.asset ?? ASSET_OPTIONS.find((asset) => asset.id === assetId) ?? ASSET_OPTIONS[0]
   const latest = summary?.latest ?? null
   const accentColor = activeAsset.id === 'bitcoin' ? '#7dd3fc' : '#34d399'
   const chartName = `${activeAsset.symbol} 价格`
-  const isAssetSwitching = loading && pendingAssetId !== null
+  const isAssetSwitching = pendingAssetId !== null && (dashboardLoading || recentLoading)
   const isDark = theme === 'dark'
   const shellClass = isDark ? 'bg-ink text-sand' : 'bg-[#f6efe1] text-[#152131]'
   const heroClass = isDark
@@ -230,7 +272,8 @@ function App() {
     }
 
     setPendingAssetId(nextAssetId)
-    setLoading(true)
+    setDashboardLoading(true)
+    setRecentLoading(true)
     setAssetId(nextAssetId)
   }
 
@@ -427,7 +470,7 @@ function App() {
             </div>
 
             <div className="h-[420px]">
-              {loading ? (
+              {dashboardLoading ? (
                 <ChartPlaceholder isDark={isDark} label="正在加载图表..." />
               ) : chartData && chartData.points.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%">
@@ -592,6 +635,7 @@ function App() {
             </div>
             <div className="flex flex-col gap-3 sm:items-end">
               <p className={`text-sm ${mutedTextClass}`}>
+                {recentLoading ? '最近快照更新中 · ' : null}
                 当前第 {safeRecentPage} / {totalRecentPages} 页
               </p>
             </div>
